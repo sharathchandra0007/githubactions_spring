@@ -1,0 +1,43 @@
+name : springpetclinic-CICD
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on : ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: login into docker hub
+        uses: docker/login-action@v2
+        with:
+          username: "sharathchandra007"
+          password: "Sarath@18"
+
+      - name: build and push docker image
+        uses: docker/build-push-action@v2
+        with: 
+          context: .
+          file: ./Dockerfile
+          push: "true"
+          tags: "sharathchandra007/my-image:1.0"
+          
+      - name: run trivy scan
+        run: |
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy -y
+      
+      - name: scan image 
+        run: |
+          trivy image "sharathchandra007/my-image:1.0"
+                    
+
+  
